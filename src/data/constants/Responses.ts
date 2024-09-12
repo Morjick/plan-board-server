@@ -90,6 +90,8 @@ export const createReponse = (response: IResponse, body?: any, toast?: IToast) =
 
   if (body && 'message' in body) {
     newReponse.exception.message = body.message
+
+    delete body.message
   }
 
   return newReponse

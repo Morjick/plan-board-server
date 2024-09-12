@@ -1,6 +1,13 @@
 
 import { Body, Delete, Get, JsonController, Params, Patch, Post, Put, Req, UseBefore } from 'routing-controllers'
-import { ChangePasswordContract, CreateUserContract, LoginUserContract, UpdateProfileContract } from '~/data/contracts/user.contract'
+import {
+  ChangePasswordContract,
+  CreateUserContract,
+  ForgetPasswordContract,
+  LoginUserContract,
+  UpdateProfileContract,
+  VerifyForgottenCodeContract
+} from '~/data/contracts/user.contract'
 import { NotFoundResponse, ServerErrorResponse } from '~/data/constants/Responses'
 
 import { AuthMiddleware } from '~/middlewares/auth,middleware'
@@ -97,5 +104,15 @@ export class UserController {
     if (!user) return NotFoundResponse
 
     return await user.updateProfile(body)
+  }
+
+  @Post('/forget-password')
+  async forgetPassword (@Body() body: ForgetPasswordContract) {
+    return await UserEntity.generateForgottenCode(body.email)
+  }
+
+  @Post('/verify-code')
+  async verifyForgottenCode (@Body() body: VerifyForgottenCodeContract) {
+    return await UserEntity.verifyForgottenCode(body.email, body.code)
   }
 }

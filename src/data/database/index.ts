@@ -1,4 +1,5 @@
 
+import { ForgottenCodes } from './models/user/ForgottenCodes'
 import { Participants } from './models/projects/ParticipantModel'
 import { Projects } from './models/projects/ProjectModel'
 import { Sequelize } from 'sequelize-typescript'
@@ -46,7 +47,7 @@ export const startDataBase = async (data: DataBaseConstructorInterface) => {
       },
       logging: false,
       port: Number(data.PORT),
-      models: [Users, Projects, Participants, UserNotification, Spaces],
+      models: [Users, Projects, Participants, UserNotification, Spaces, ForgottenCodes],
     }
   )
 

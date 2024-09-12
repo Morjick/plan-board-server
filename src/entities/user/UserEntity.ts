@@ -1,6 +1,8 @@
 
 import {
   AlreadyExistResponse, 
+  BadRequestResponse, 
+  createReponse, 
   NotFoundResponse,
   OKResponse,
   ServerErrorResponse,
@@ -9,6 +11,7 @@ import { ChangePasswordContract, CreateUserContract, LoginUserContract, UpdatePr
 import { ILocationConstructor, LocationEntity } from './LocationEntity'
 import { ITariffitem, TariffEntity, TTariffType } from '../tariff/TariffEntity'
 import { Emitter } from '~/libs/Emitter'
+import { ForgottenCodes } from '~/data/database/models/user/ForgottenCodes'
 import { IResponse } from '~/data/interfaces/server.interfaces'
 import { Libs } from '~/libs/Libs'
 import { ParticipantEntity } from '../projects/ParticipantEntity'
@@ -170,6 +173,7 @@ export class UserEntity {
 
   public async changeTariff (tariff: ITariffitem): Promise<IResponse> {
     this.tariffType = tariff.type
+    await Users.update({ tariffType: this.tariffType }, { where: { id: this.id } })
     
     return {
       status: 200,
@@ -366,6 +370,58 @@ export class UserEntity {
       return OKResponse
     } catch {
       return ServerErrorResponse
+    }
+  }
+
+  public static async generateForgottenCode (email: string): Promise<IResponse> {
+    try {
+      await ForgottenCodes.destroy({ where: { email } })
+
+      const datemark = Libs.getDate()
+      const code = Libs.randomNumber(100000, 999999).toString()
+
+      await ForgottenCodes.create({ email, datemark, code })
+
+      return createReponse(OKResponse, {
+        message: 'Код для восстановления пароля отправлен на Вашу почту'
+      })
+    } catch (e) {
+      const error = new Error(e)
+      return createReponse(ServerErrorResponse, {
+        message: 'Неожиданная ошибка при формировании кода',
+        details: error.message,
+        stack: error.stack || null,
+      })
+    }
+  }
+
+  public static async verifyForgottenCode (email: string, code: string) {
+    try {
+      const isCode = await ForgottenCodes.findOne({ where: { email } })
+
+      if (!isCode) return createReponse(NotFoundResponse, { message: 'Нет проверочного кода для пользователя с таким email' })
+
+      const forgottenCode = isCode.dataValues
+
+      if (code !== forgottenCode.code) return createReponse(BadRequestResponse, { message: 'Коды не совпадают' })
+
+      const randomString = Libs.randomString(16)
+      const newPassword = Security.encode(randomString)
+
+      await Users.update({ password: newPassword }, { where: { email } })
+      ForgottenCodes.destroy({ where: { id: isCode.id } })
+
+      return await UserEntity.login({
+        email,
+        password: newPassword,
+      })
+    } catch (e) {
+      const error = new Error(e)
+      return createReponse(ServerErrorResponse, {
+        message: 'Не удалось проверить код',
+        error: error.message,
+        stack: error.stack,
+      })
     }
   }
 }

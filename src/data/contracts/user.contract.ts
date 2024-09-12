@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator'
+import { IsEmail, IsNotEmpty, IsString, Length } from 'class-validator'
 
 export class CreateUserContract {
   @IsEmail({}, { message: 'Электронная почта не валидна' })
@@ -24,6 +24,17 @@ export class LoginUserContract {
   @IsString({ message: 'Пароль должен быть строкой' })
   @IsNotEmpty({ message: 'Пароль является обязательным параметром' })
   password: string
+}
+
+export class ForgetPasswordContract {
+  @IsEmail({}, { message: 'Электронная почта не валидна' })
+  email: string
+}
+
+export class VerifyForgottenCodeContract extends ForgetPasswordContract {
+  @IsNotEmpty({ message: 'Код для восстановления обязателен' })
+  @Length(6, 6, { message: 'Длинна кода должна составлять 6 символов' })
+  code: string
 }
 
 export class CreateCommandContract {

@@ -169,4 +169,39 @@ export const userMethods: IApiHTTPMethod[] = [
       { name: 'avatar', required: false, value: 'string', },
     ],
   },
+  {
+    id: 'forget-password',
+    method: 'POST',
+    path: 'forget-password',
+    section: 'users',
+    requiredAuth: false,
+    description: 'При использовании метода отправляет на почту пользователю проверочный код',
+    responses: [
+      OKResponse,
+      BadRequestResponse,
+      NotFoundResponse,
+      ServerErrorResponse,
+    ],
+    params: [
+      { name: 'email', required: true, value: 'string', },
+    ],
+  },
+  {
+    id: 'verify-code',
+    method: 'POST',
+    path: 'verify-code',
+    section: 'users',
+    requiredAuth: false,
+    description: 'Отправить код для восстановление пароля. При успешной проверке авторизует пользователя',
+    responses: [
+      OKResponse,
+      BadRequestResponse,
+      NotFoundResponse,
+      ServerErrorResponse,
+    ],
+    params: [
+      { name: 'email', required: true, value: 'string', },
+      { name: 'code', required: true, value: 'string', },
+    ],
+  },
 ]
