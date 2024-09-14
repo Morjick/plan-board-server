@@ -13,6 +13,11 @@ export const onlineNameSpace: ISocketNameSpace = {
         { name: 'notification', type: 'UserNotificationEntity', value: 'UserNotificationEntity' },
       ]
     },
+    {
+      name: 'connected',
+      description: 'Поддтверждает подключение пользователя к сервису',
+      body: []
+    },
   ],
   actions: [],
 }

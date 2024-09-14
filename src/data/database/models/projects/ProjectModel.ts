@@ -13,6 +13,7 @@ export interface IProjectModel {
   showNameOnCursor: boolean
   isCanJoinAnonyme: boolean
   autoAcceptUsers: boolean
+  parantID: number
 }
 
 @Table
@@ -57,4 +58,7 @@ export class Projects extends Model<IProjectModel> {
 
   @Column({ type: DataType.ARRAY(DataType.INTEGER), defaultValue: [] })
   participantsID: number[]
+
+  @Column({ type: DataType.INTEGER })
+  parantID: number
 }

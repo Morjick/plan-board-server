@@ -1,4 +1,9 @@
 
+import { AnalyticsErrorPage } from './models/analytics/AnalyticsErrorPage'
+import { AnalyticsHelp } from './models/analytics/AnalyticsHelp'
+import { AnalyticsSessions } from './models/analytics/AnalyticsSessions'
+import { Directories } from './models/projects/DirectoryModel'
+import { DirectoryFiles } from './models/projects/FilesModel'
 import { ForgottenCodes } from './models/user/ForgottenCodes'
 import { Participants } from './models/projects/ParticipantModel'
 import { Projects } from './models/projects/ProjectModel'
@@ -47,7 +52,19 @@ export const startDataBase = async (data: DataBaseConstructorInterface) => {
       },
       logging: false,
       port: Number(data.PORT),
-      models: [Users, Projects, Participants, UserNotification, Spaces, ForgottenCodes],
+      models: [
+        Users,
+        Projects,
+        Participants,
+        UserNotification,
+        Spaces,
+        ForgottenCodes,
+        AnalyticsSessions,
+        AnalyticsHelp,
+        AnalyticsErrorPage,
+        Directories,
+        DirectoryFiles,
+      ],
     }
   )
 

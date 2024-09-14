@@ -4,6 +4,8 @@ import { ILocationConstructor, LocationEntity } from '../user/LocationEntity'
 import { IProjectModel, Projects } from '~/data/database/models/projects/ProjectModel'
 import { IUserProfile, UserEntity } from '../user/UserEntity'
 import { Participants, TParticipantRole } from '~/data/database/models/projects/ParticipantModel'
+import { CreateWorkspaceContract } from '~/data/contracts/projects.contracts'
+import { Directories } from '~/data/database/models/projects/DirectoryModel'
 import { Emitter } from '~/libs/Emitter'
 import { IResponse } from '~/data/interfaces/server.interfaces'
 import { Libs } from '~/libs/Libs'
@@ -40,6 +42,7 @@ export class WorkspaceEntity {
   public avatar: string
   public autorID: number
   public participantsID: number[] = []
+  public parantID: number
 
   public space: SpaceEntity
   public emitter = new Emitter<TWorkspaceEmits>()
@@ -280,6 +283,7 @@ export class WorkspaceEntity {
       this.showCursors = workspace.showCursors || false
       this.showNameOnCursor = workspace.showNameOnCursor || false
       this.isCanJoinAnonyme = workspace.isCanJoinAnonyme || false
+      this.parantID = workspace.parantID
   
       this.locationEntity = new LocationEntity({ location: 'workspace', hash: this.hash })
   
@@ -337,7 +341,7 @@ export class WorkspaceEntity {
     }
   }
 
-  public static async create (autor: UserEntity): Promise<IResponse> {
+  public static async create (autor: UserEntity, data?: CreateWorkspaceContract): Promise<IResponse> {
     try {
       if (!autor) return createReponse(UnauthorizedResponse)
       const name = `Пространство #${Libs.randomString(16)}`
@@ -352,11 +356,24 @@ export class WorkspaceEntity {
 
       const maintainer = await Participants.create({ userHash: autor.hash, role: 'maintainer' })
 
+      let parantID = null
+
+      if (data.directoryID) {
+        const directory = await Directories.findByPk(data.directoryID)
+
+        if (directory.autorHash !== autor.hash) return createReponse(PermissionDeniedResponse, {
+          message: 'Вы не можете создавать файлы в этой директории'
+        })
+
+        parantID = directory.id
+      }
+
       const workspace = await Projects.create({
         name, hash, participantsID: [maintainer.dataValues.id], autorID: autor.id,
         created: new Date().toLocaleString('ru'),
         lastUpdate: new Date().toLocaleString('ru'),
         showCursors: false, showNameOnCursor: false, isCanJoinAnonyme: false,
+        parantID: parantID,
       })
       
       await Spaces.create({ workspaceID: workspace.dataValues.id, hash: Libs.randomString(24) })

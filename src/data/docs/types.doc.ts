@@ -21,4 +21,8 @@ export const unionTypes: IUnionType[] = [
     name: 'TFigureType',
     values: ['straight-line', 'square', 'circle']
   },
+  {
+    name: 'THelpPage',
+    values: ['directories', 'workspace']
+  },
 ]

@@ -424,4 +424,17 @@ export class UserEntity {
       })
     }
   }
+
+  public static async getProfile (userHash: string): Promise<IResponse> {
+    const user = await Users.findOne({
+      where: { hash: userHash },
+      attributes: ['id', 'firstname', 'middlename', 'lastname', 'avatar', 'hash']
+    })
+
+    if (!user) return NotFoundResponse
+
+    return createReponse(OKResponse, {
+      user,
+    })
+  }
 }

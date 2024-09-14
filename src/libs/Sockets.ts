@@ -1,4 +1,5 @@
 
+import { Libs } from './Libs'
 import { Reposity } from '~/data/reposity'
 import { Security } from './Security'
 import { Socket } from 'socket.io'
@@ -27,6 +28,7 @@ export class Sockets {
     return {
       auth: user.fullProfile,
       location: user.location,
+      sessionStart: Libs.getDate(),
     }
   }
 }

@@ -57,10 +57,14 @@ export class UserController {
       const hash = request.userHash
       const user = await Reposity.users.findUser(hash)
 
+      if (!user) return NotFoundResponse
+
       return {
         status: 200,
         exception: { type: 'OK', message: 'Профиль получен' },
-        body: { profile: user.fullProfile },
+        body: {
+          profile: user.profile
+        },
       }
     } catch (e) {
       return { ...ServerErrorResponse, body: { error: new Error(e).message, } }
