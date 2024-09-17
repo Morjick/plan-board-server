@@ -390,12 +390,17 @@ export class UserEntity {
 
   public static async generateForgottenCode (email: string): Promise<IResponse> {
     try {
+      const user = await Users.findOne({ where: { email: email }, attributes: ['id', 'firstname'] })
+      if (!user) return createReponse(NotFoundResponse, { message: 'Пользователь с такой почтой не найден' })
+
       await ForgottenCodes.destroy({ where: { email } })
 
       const datemark = Libs.getDate()
-      const code = Libs.randomNumber(100000, 999999).toString()
+      const code = Libs.randomNumber(100000, 999999)
 
-      await ForgottenCodes.create({ email, datemark, code })
+      await ForgottenCodes.create({ email, datemark, code: code.toString() })
+
+      await Mailer.sendForgetPasswordCode({ to: email, verificationCode: code, username: user.firstname })
 
       return createReponse(OKResponse, {
         message: 'Код для восстановления пароля отправлен на Вашу почту'

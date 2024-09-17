@@ -1,6 +1,6 @@
 
+import { createForgetPasswordEmailTemplate, createRegistrationEmailTemplate } from '~/data/templates/email.templates'
 import { OKResponse, ServerErrorResponse } from '~/data/constants/Responses'
-import { createRegistrationEmailTemplate } from '~/data/templates/email.templates'
 import nodemailer from 'nodemailer'
 
 export interface ISendMailData {
@@ -50,6 +50,17 @@ export class Mailer {
       to: data.to,
       subject: 'Добро пожаловать в PlanBoard!',
       text: 'Закончите регистрацию в PlanBoard!',
+      html: template,
+    })
+  }
+
+  public static async sendForgetPasswordCode (data: ISendVerificationCode) {
+    const template = createForgetPasswordEmailTemplate(data)
+
+    return await Mailer.sendMail({
+      to: data.to,
+      subject: 'Восстановление пароля в PlanBoard',
+      text: 'Восстановление пароля в PlanBoard',
       html: template,
     })
   }
