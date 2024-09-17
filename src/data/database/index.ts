@@ -12,6 +12,7 @@ import { Spaces } from './models/projects/SpaceModel'
 import { TServerMode } from '../interfaces/server.interfaces'
 import { UserNotification } from './models/user/UserNotificationModel'
 import { Users } from './models/user/UserModel'
+import { UserVerificationsCodes } from './models/user/VerificationCode'
 
 export interface DataBaseConstructorInterface {
   HOST: string | number
@@ -54,6 +55,7 @@ export const startDataBase = async (data: DataBaseConstructorInterface) => {
       port: Number(data.PORT),
       models: [
         Users,
+        UserVerificationsCodes,
         Projects,
         Participants,
         UserNotification,

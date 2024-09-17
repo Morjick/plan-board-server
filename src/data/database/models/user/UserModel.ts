@@ -13,6 +13,7 @@ export interface IUserModel {
   tariffType: TTariffType
   password: string
   projectsHash: string[]
+  isEmailVerified: boolean
 }
 
 @Table
@@ -36,6 +37,9 @@ export class Users extends Model<IUserModel> {
 
   @Column({ type: DataType.STRING, allowNull: false, unique: true })
   email: string
+
+  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+  isEmailVerified: boolean
 
   @Column({ type: DataType.STRING, allowNull: false, unique: true })
   password: string

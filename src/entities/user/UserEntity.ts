@@ -5,6 +5,7 @@ import {
   createReponse, 
   NotFoundResponse,
   OKResponse,
+  PermissionDeniedResponse,
   ServerErrorResponse,
 } from '../../data/constants/Responses'
 import { ChangePasswordContract, CreateUserContract, LoginUserContract, UpdateProfileContract, } from '~/data/contracts/user.contract'
@@ -14,12 +15,14 @@ import { Emitter } from '~/libs/Emitter'
 import { ForgottenCodes } from '~/data/database/models/user/ForgottenCodes'
 import { IResponse } from '~/data/interfaces/server.interfaces'
 import { Libs } from '~/libs/Libs'
+import { Mailer } from '~/libs/Mailer'
 import { ParticipantEntity } from '../projects/ParticipantEntity'
 import { Projects } from '~/data/database/models/projects/ProjectModel'
 import { Security } from '../../libs/Security'
 import { Socket } from 'socket.io'
 import { UserNotificationEntity } from './UserNotification'
 import { Users } from '../../data/database/models/user/UserModel'
+import { UserVerificationsCodes } from '~/data/database/models/user/VerificationCode'
 import { WorkspaceEntity } from '../projects/WorkspaceEntity'
 
 export type TNotifyEvent = 'redirect' | 'error:permissions' | 'workspace:update' | 'workspace:edit' | 'error:connection' | 'waiting-invition' | 'notification'
@@ -54,6 +57,12 @@ export interface IUserFullProfile extends IUserProfile {
 export interface ICreateNotification {
   message: string
   href?: string
+}
+
+export interface IVerifyEmail {
+  userID: number
+  username: string
+  email: string
 }
 
 export class UserEntity {
@@ -299,19 +308,21 @@ export class UserEntity {
         tariffType: 'basic',
       }
 
-      const user = await Users.create({ ...userData })
+      const user = await Users.create({ ...userData, isEmailVerified: false })
 
-      const hashedData = { hash, firstname: data.firstname, password }
-      const [accessToken, refreshToken] = await Security.getAuthToken(hashedData)
+      UserEntity.createEmailVerification({
+        email: user.email,
+        userID: user.id,
+        username: user.firstname,
+      })
 
       return {
         status: 201,
         exception: {
           type: 'OK',
-          message: 'Пользователь успешно создан'
+          message: 'Пользователь успешно создан. Вы сможете пользоваться аккаунтом после подтверждения почты'
         },
         body: {
-          accessToken, refreshToken,
           user: { id: user.id },
         }
       }
@@ -322,10 +333,14 @@ export class UserEntity {
 
   public static async login (data: LoginUserContract): Promise<IResponse> {
     try {
-      const candidat = await Users.findOne({ where: { email: data.email }, attributes: ['id', 'password', 'hash', 'firstname'] })
+      const candidat = await Users.findOne({ where: { email: data.email }, attributes: ['id', 'password', 'hash', 'firstname', 'isEmailVerified'] })
 
       if (!candidat) return NotFoundResponse
       const user = candidat.dataValues
+
+      if (!user.isEmailVerified) return createReponse(PermissionDeniedResponse, {
+        message: 'Для входа в аккаунт необходимо верифицировать почту'
+      })
 
       const isPassword = await Security.comparePassword(data.password, user.password)
 
@@ -425,6 +440,43 @@ export class UserEntity {
     }
   }
 
+  public static async verifyEmail (email: string, code: number) {
+    try {
+      const isUserExists = await Users.findOne({
+        where: { email },
+        attributes: ['id', 'email', 'isEmailVerified', 'firstname', 'password', 'hash'],
+      })
+
+      if (!isUserExists) return createReponse(NotFoundResponse, { message: 'Пользователь с такой почтой не найден' })
+
+      if (isUserExists.isEmailVerified) return createReponse(BadRequestResponse, { message: 'Ваша почта уже верифицирована' })
+
+      const verification = await UserVerificationsCodes.findOne({ where: { email: email } })
+      if (!verification) return createReponse(NotFoundResponse, { message: 'Вы не подавали запрос на верификацию' })
+
+      const isVerificationCodeValid = code == verification.code
+      if (!isVerificationCodeValid) return createReponse(BadRequestResponse, { message: 'Не верный код верификации' })
+
+      await UserVerificationsCodes.destroy({ where: { id: verification.id } })
+      await Users.update({ isEmailVerified: true }, { where: { id: isUserExists.id } })
+
+      const hashedData = { hash: isUserExists.dataValues.hash, firstname: isUserExists.firstname, password: isUserExists.password }
+      const [accessToken, refreshToken] = await Security.getAuthToken(hashedData)
+
+      return createReponse(OKResponse, {
+        message: 'Почта успешно подтверждена',
+        accessToken, refreshToken,
+      })
+    } catch (e) {
+      const error = new Error(e)
+      return createReponse(ServerErrorResponse, {
+        message: 'Не удалось верифицировать почту',
+        error: error.message,
+        stack: error.stack || null,
+      })
+    }
+  }
+
   public static async getProfile (userHash: string): Promise<IResponse> {
     const user = await Users.findOne({
       where: { hash: userHash },
@@ -436,5 +488,35 @@ export class UserEntity {
     return createReponse(OKResponse, {
       user,
     })
+  }
+
+  public static async generateEmailVerification (email: string) {
+    try {
+      const user = await Users.findOne({
+        where: { email },
+        attributes: ['id', 'email', 'isEmailVerified', 'firstname'],
+      })
+
+      if (!user) return createReponse(NotFoundResponse, { message: 'Пользователь с такой почтой не найден' })
+
+      if (user.isEmailVerified) return createReponse(BadRequestResponse, { message: 'Ваша почта уже верифицирована' })
+
+      await UserEntity.createEmailVerification({ userID: user.id, username: user.firstname, email: user.email })
+
+      return OKResponse
+    } catch (e) {
+      const error = new Error(e)
+      return createReponse(ServerErrorResponse, {
+        message: 'Не удалось создать код для верификации',
+        error: error.message,
+        stack: error.stack,
+      })
+    }
+  }
+
+  public static async createEmailVerification (data: IVerifyEmail) {
+    const verificationCode = Libs.randomNumber(100000, 999999)
+    await UserVerificationsCodes.create({ code: verificationCode, email: data.email, userID: data.userID })
+    await Mailer.sendVerificationCode({ to: data.email, verificationCode: verificationCode, username: data.username })
   }
 }

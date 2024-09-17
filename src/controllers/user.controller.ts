@@ -3,8 +3,10 @@ import { Body, Delete, Get, JsonController, Params, Patch, Post, Put, Req, UseBe
 import {
   ChangePasswordContract,
   CreateUserContract,
+  EmailVerificationContract,
   ForgetPasswordContract,
   LoginUserContract,
+  SendEmailVerifyCodeContract,
   UpdateProfileContract,
   VerifyForgottenCodeContract
 } from '~/data/contracts/user.contract'
@@ -29,6 +31,18 @@ export class UserController {
   @UseBefore((req, res, next) => ValidationMiddleware(req, res, next, LoginUserContract))
   async login (@Body() body: LoginUserContract) {
     return await UserEntity.login(body)
+  }
+
+  @Post('/email-verify')
+  @UseBefore((req, res, next) => ValidationMiddleware(req, res, next, EmailVerificationContract))
+  async emailVerify (@Body() body: EmailVerificationContract) {
+    return await UserEntity.verifyEmail(body.email, body.code)
+  }
+
+  @Post('/send-email-verify-code')
+  @UseBefore((req, res, next) => ValidationMiddleware(req, res, next, SendEmailVerifyCodeContract))
+  async sendEmailVerifyCode (@Body() body: SendEmailVerifyCodeContract) {
+    return await UserEntity.generateEmailVerification(body.email)
   }
 
   @Get('/check-token')

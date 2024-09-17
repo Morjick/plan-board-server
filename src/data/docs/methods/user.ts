@@ -5,6 +5,7 @@ import {
   DeletedResponse,
   NotFoundResponse,
   OKResponse,
+  PermissionDeniedResponse,
   ServerErrorResponse,
   UnauthorizedResponse,
   UpdatedResponse
@@ -202,6 +203,43 @@ export const userMethods: IApiHTTPMethod[] = [
     params: [
       { name: 'email', required: true, value: 'string', },
       { name: 'code', required: true, value: 'string', },
+    ],
+  },
+  {
+    id: 'email-verify',
+    method: 'POST',
+    path: 'email-verify',
+    section: 'users',
+    requiredAuth: false,
+    description: 'Отправить код для верификации почты',
+    responses: [
+      OKResponse,
+      BadRequestResponse,
+      NotFoundResponse,
+      ServerErrorResponse,
+      PermissionDeniedResponse
+    ],
+    params: [
+      { name: 'email', required: true, value: 'string', },
+      { name: 'code', required: true, value: 'number', },
+    ],
+  },
+  {
+    id: 'send-email-verify-code',
+    method: 'POST',
+    path: 'send-email-verify-code',
+    section: 'users',
+    requiredAuth: false,
+    description: 'Запросить повторную отправку письма с кодом верификации',
+    responses: [
+      OKResponse,
+      BadRequestResponse,
+      NotFoundResponse,
+      ServerErrorResponse,
+      PermissionDeniedResponse
+    ],
+    params: [
+      { name: 'email', required: true, value: 'string', },
     ],
   },
 ]

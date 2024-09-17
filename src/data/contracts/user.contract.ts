@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, Length } from 'class-validator'
+import { IsEmail, IsNotEmpty, IsNumber, IsString, Length } from 'class-validator'
 
 export class CreateUserContract {
   @IsEmail({}, { message: 'Электронная почта не валидна' })
@@ -51,6 +51,19 @@ export class ChangePasswordContract {
   @IsString({ message: 'Пароль должен быть строкой' })
   @IsNotEmpty({ message: 'Введите новый пароль' })
   newPassword: string
+}
+
+export class EmailVerificationContract {
+  @IsEmail({}, { message: 'Почта не валидна' })
+  email: string
+
+  @IsNumber({}, { message: 'Верификационный код должен быть числом' })
+  code: number
+}
+
+export class SendEmailVerifyCodeContract {
+  @IsEmail({}, { message: 'Почта не валидна' })
+  email: string
 }
 
 export class UpdateProfileContract {
