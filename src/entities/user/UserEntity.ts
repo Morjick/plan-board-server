@@ -283,13 +283,7 @@ export class UserEntity {
     try {
       const isPaswordValid = await Libs.checkValidPassword(data.password, data.firstname)
 
-      if (!isPaswordValid.ok) return {
-        status: 400,
-        exception: {
-          type: 'InvalidRequest',
-          message: isPaswordValid.message,
-        },
-      }
+      if (!isPaswordValid.ok) return createReponse(BadRequestResponse, { message: isPaswordValid.message })
 
       const isUserExists = await Users.findOne({ where: { email: data.email }, attributes: ['id'] })
 

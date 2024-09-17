@@ -1,12 +1,19 @@
 import getTransplit from './getTranslate'
 
-export async function IsValidPassword(password: string, name?: string) {
-  if (!password.split(' ').join('').length)
-    return {
-      message: 'Не используйте, пожалуйста, пробела',
-      ok: false,
-      warning: false,
-    }
+export interface ICheckPasswordResponse {
+  message: string
+  ok: boolean
+  warning?: boolean
+}
+
+export async function IsValidPassword(password: string, name?: string): Promise<ICheckPasswordResponse> {
+  if (password.includes(' ')) return {
+    message: 'Пожалуйста, не используйте пробелы',
+    ok: false,
+    warning: false,
+  }
+
+  if (password.replace(' ', '').length < 6) return { message: 'Минимальная длинна пароля - 6 символов', ok: false, warning: false }
 
   if (
     name &&
@@ -19,6 +26,12 @@ export async function IsValidPassword(password: string, name?: string) {
       ok: false,
       warning: false,
     }
+  }
+
+  if (typeof Number(password) == 'number') return {
+    message: 'Используйте в пароле хотя бы одну букву',
+    ok: false,
+    warning: false,
   }
 
   if (
@@ -34,31 +47,42 @@ export async function IsValidPassword(password: string, name?: string) {
       warning: false,
     }
 
-  if (
-    password.includes('password') ||
-    password.includes('0000') ||
-    password.includes('1111') ||
-    password.includes('2222')
-  )
-    return {
-      message: 'Пароль слишком простой',
-      ok: false,
-      warning: false,
-    }
+  const blacklist = [
+    'password',
+    'password1',
+    'password2',
+    'password3',
+    'password4',
+    'password5',
+    'password6',
+    'password7',
+    'password8',
+    'password9',
+    'password0',
+    '000000',
+    '111111',
+    '222222',
+    '333333',
+    '444444',
+    '555555',
+    '666666',
+    '777777',
+    '888888',
+    '999999',
+    'a123456',
+    'qwerty',
+    'guest',
+    'batman',
+    'master',
+    'gfhjkm',
+    '1q2w3e4r5t6y',
+    'hjccnz',
+    'baltika9',
+    'monkey',
+  ]
 
-  if (password.includes('00'))
-    return {
-      message: 'Не советуется использовать год рождения',
-      ok: true,
-      warning: true,
-    }
-
-  if (password.length < 6)
-    return {
-      message: 'Минимальная длинна пароля - 6 символов',
-      ok: true,
-      warning: true,
-    }
+  const isPasswordInBlackList = blacklist.includes(password.toLocaleLowerCase())
+  if (isPasswordInBlackList) return { message: 'Пароль слишком простой', ok: false, warning: false }
 
   return {
     message: 'Пароль отлично подошёл',
