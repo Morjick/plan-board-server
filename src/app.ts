@@ -3,6 +3,9 @@ import 'dotenv/config'
 import * as fs from 'fs'
 import * as path from 'path'
 
+import { NotFoundResponse, ServerErrorResponse } from './data/constants/Responses'
+import { Request, Response } from 'express'
+
 import { AppController } from './controllers/app.controller'
 import { buildGlobalReposity } from './data/reposity'
 import { ConnectionMiddleware } from './middlewares/connect.middleware'
@@ -14,6 +17,7 @@ import { ProjectController } from './controllers/projects.controller'
 import { ServerHeaders } from './data/constants/Server'
 import { SocketControllers } from 'socket-controllers'
 import { startDataBase } from './data/database'
+import { StaticController } from './controllers/static.constroller'
 import { TariffController } from './controllers/tariff.controller'
 import { TServerMode } from './data/interfaces/server.interfaces'
 import { UserController } from './controllers/user.controller'
@@ -26,7 +30,7 @@ const startServer = async () => {
     const serverMode: TServerMode = process.env.SERVER_MODE as TServerMode || 'development'
 
     const app = createExpressServer({
-      controllers: [UserController, AppController, TariffController, ProjectController],
+      controllers: [UserController, AppController, TariffController, ProjectController, StaticController],
       interceptors: [GlobalResponseInterceptor],
       cors: {
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
@@ -58,6 +62,19 @@ const startServer = async () => {
     await buildGlobalReposity()
 
     app.listen(port)
+
+    app.use('/static/get-file/:directory/:filename', (request: Request, response: Response) => {
+      try {
+        const filename = request.params.filename
+        const directory = request.params.directory
+  
+        if (directory !== 'files') return response.status(404).json(NotFoundResponse)
+  
+        return response.sendFile(filename, { root: path.join(__dirname, 'data', 'static', 'files') })
+      } catch (e) {
+        return response.status(501).json(ServerErrorResponse)
+      }
+    })
 
     console.log(`Server Start: Server port ${port}, Socket port - ${socketPort}`)
   } catch (error) {
