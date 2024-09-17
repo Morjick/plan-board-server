@@ -401,4 +401,19 @@ export class WorkspaceEntity {
 
     return projects.map((el) => el.dataValues)
   }
+
+  public static async findByAutor (id: number, autor?: IUserProfile): Promise<IProjectModel[]> {
+    const result = await Projects.findAll({
+      where: { autorID: id },
+    })
+
+    const workspaces = result.map((el) => {
+      const workspace = { ...el.dataValues }
+
+      if (autor) workspace.autor = autor
+      return workspace
+    })
+
+    return workspaces
+  }
 }

@@ -1,4 +1,5 @@
 import { Column, DataType, Model, Table } from 'sequelize-typescript'
+import { IUserProfile } from '~/entities/user/UserEntity'
 
 export interface IDirectoryModel {
   id: number
@@ -8,6 +9,11 @@ export interface IDirectoryModel {
   filesID: number[]
   autorHash: string
   name: string
+}
+
+export interface IDirectory extends IDirectoryModel {
+  length: number
+  autor?: IUserProfile
 }
 
 @Table

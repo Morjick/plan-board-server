@@ -1,4 +1,5 @@
 import { Column, DataType, Model, Table } from 'sequelize-typescript'
+import { IUserProfile } from '~/entities/user/UserEntity'
 
 export interface IProjectModel {
   id: number
@@ -14,6 +15,7 @@ export interface IProjectModel {
   isCanJoinAnonyme: boolean
   autoAcceptUsers: boolean
   parantID: number
+  autor?: IUserProfile
 }
 
 @Table

@@ -2,8 +2,8 @@
 import { AlreadyExistResponse, createReponse, OKResponse, ServerErrorResponse } from '~/data/constants/Responses'
 import { Body, Get, JsonController, Post, Req, UseBefore } from 'routing-controllers'
 import { CreateDirectoryContract, CreateWorkspaceContract } from '~/data/contracts/projects.contracts'
+import { Directories, IDirectory } from '~/data/database/models/projects/DirectoryModel'
 import { AuthMiddleware } from '~/middlewares/auth,middleware'
-import { Directories } from '~/data/database/models/projects/DirectoryModel'
 import { Libs } from '~/libs/Libs'
 import { Reposity } from '~/data/reposity'
 import { WorkspaceEntity } from '~/entities/projects/WorkspaceEntity'
@@ -26,11 +26,21 @@ export class ProjectController {
     try {
       const userHash = request.userHash
       const user = await Reposity.users.findUser(userHash)
-  
-      const workspaces = await user.getWorkspaces()
-  
+
+      const directoriesData = await Directories.findAll({
+        where: { autorHash: user.hash },
+        limit: 50,
+      })
+      const directoriesModel = directoriesData.map((el) => el.dataValues)
+      const directories: IDirectory[] = directoriesModel.map((el) => {
+        return { ...el, length: 0, autor: user.profile  }
+      })
+
+      const workspaces = await WorkspaceEntity.findByAutor(user.id, user.profile)
+
       return createReponse(OKResponse, {
         workspaces: workspaces,
+        directories,
       })
     } catch (e) {
       return createReponse(ServerErrorResponse, {

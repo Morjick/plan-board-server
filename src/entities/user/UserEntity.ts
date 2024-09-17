@@ -2,11 +2,13 @@
 import {
   AlreadyExistResponse, 
   BadRequestResponse, 
+  CreatedResponse, 
   createReponse, 
   NotFoundResponse,
   OKResponse,
   PermissionDeniedResponse,
   ServerErrorResponse,
+  UpdatedResponse,
 } from '../../data/constants/Responses'
 import { ChangePasswordContract, CreateUserContract, LoginUserContract, UpdateProfileContract, } from '~/data/contracts/user.contract'
 import { ILocationConstructor, LocationEntity } from './LocationEntity'
@@ -183,12 +185,8 @@ export class UserEntity {
   public async changeTariff (tariff: ITariffitem): Promise<IResponse> {
     this.tariffType = tariff.type
     await Users.update({ tariffType: this.tariffType }, { where: { id: this.id } })
-    
-    return {
-      status: 200,
-      exception: { type: 'Updated', message: 'Тариф изменён' },
-      body: { tarif: this.tariff },
-    }
+
+    return UpdatedResponse
   }
 
   public async changePassword (data: ChangePasswordContract): Promise<IResponse> {
@@ -223,10 +221,7 @@ export class UserEntity {
   
       this.emitter.emit('update', this)
 
-      return {
-        status: 200,
-        exception: { type: 'OK', message: 'Профиль обновлён' }
-      }
+      return UpdatedResponse
     } catch {
       return ServerErrorResponse
     }
@@ -240,11 +235,9 @@ export class UserEntity {
     const notification = response.body.notification
     this.notifications.push(notification)
 
-    if (this.online) {
-      this.notify('notification', {
-        notification: notification,
-      })
-    }
+    this.notify('notification', {
+      notification: notification,
+    })
 
     return OKResponse
   }
@@ -275,6 +268,10 @@ export class UserEntity {
   public set location (data: ILocationConstructor) {
     this.locationEntity.hash = data.hash
     this.locationEntity.location = data.location
+
+    if (this.socket) {
+      this.socket.handshake.auth.location = this.location
+    }
 
     this.emitter.emit('update:location', this.location)
   }
@@ -310,16 +307,10 @@ export class UserEntity {
         username: user.firstname,
       })
 
-      return {
-        status: 201,
-        exception: {
-          type: 'OK',
-          message: 'Пользователь успешно создан. Вы сможете пользоваться аккаунтом после подтверждения почты'
-        },
-        body: {
-          user: { id: user.id },
-        }
-      }
+      return createReponse(CreatedResponse, {
+        message: 'Пользователь успешно создан, требуется верификация почты',
+        userID: user.id
+      })
     } catch {
       return ServerErrorResponse
     }
