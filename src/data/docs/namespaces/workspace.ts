@@ -61,5 +61,10 @@ export const workspaceNameSpace: ISocketNameSpace ={
         { name: 'autoAcceptUsers', type: 'boolean', value: 'boolean' },
       ]
     },
+    {
+      message: 'add-to-favorite',
+      description: 'Добавить или удалить рабочую область из избранного',
+      params: []
+    },
   ],
 }
