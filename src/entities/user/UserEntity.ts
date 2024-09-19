@@ -13,6 +13,7 @@ import {
 import { ChangePasswordContract, CreateUserContract, LoginUserContract, UpdateProfileContract, } from '~/data/contracts/user.contract'
 import { ILocationConstructor, LocationEntity } from './LocationEntity'
 import { ITariffitem, TariffEntity, TTariffType } from '../tariff/TariffEntity'
+import { IUserModel, Users } from '../../data/database/models/user/UserModel'
 import { Emitter } from '~/libs/Emitter'
 import { ForgottenCodes } from '~/data/database/models/user/ForgottenCodes'
 import { IResponse } from '~/data/interfaces/server.interfaces'
@@ -23,11 +24,18 @@ import { Projects } from '~/data/database/models/projects/ProjectModel'
 import { Security } from '../../libs/Security'
 import { Socket } from 'socket.io'
 import { UserNotificationEntity } from './UserNotification'
-import { Users } from '../../data/database/models/user/UserModel'
 import { UserVerificationsCodes } from '~/data/database/models/user/VerificationCode'
 import { WorkspaceEntity } from '../projects/WorkspaceEntity'
 
-export type TNotifyEvent = 'redirect' | 'error:permissions' | 'workspace:update' | 'workspace:edit' | 'error:connection' | 'waiting-invition' | 'notification'
+export type TNotifyEvent =
+  'redirect'
+  | 'error:permissions'
+  | 'workspace:update'
+  | 'workspace:edit'
+  | 'error:connection'
+  | 'waiting-invition'
+  | 'notification'
+  | 'update:favorites'
 
 interface ICreateUserData {
   firstname: string
@@ -77,6 +85,7 @@ export class UserEntity {
   public projectsCount: number = 0
   public projectsHash: string[] = []
   public online: boolean = false
+  public favoritesHash: string[] = []
 
   private email: string
   private phone: string
@@ -137,44 +146,14 @@ export class UserEntity {
     const result = await Users.findByPk(id)
     const user = result?.dataValues
 
-    if (!user) return NotFoundResponse
-
-    this.id = user.id
-    this.firstname = user.firstname
-    this.middlename = user.middlename
-    this.lastname = user.lastname
-    this.avatar = user.avatar
-    this.hash = user.hash
-    this.tariffType = user.tariffType
-    this.email = user.email
-    this.password = user.password
-    this.projectsHash = user.projectsHash
-
-    this.phone = Security.decode(user.phone)
-
-    const projects = await Projects.findAll({ where: { autorID: this.id } })
-    this.projectsCount = projects.length
-
-    this.notifications = await UserNotificationEntity.findAll(this.id)
-
-    return {
-      status: 200,
-      exception: {
-        type: 'OK',
-        message: 'Пользователь найден'
-      },
-      body: {
-        tariff: this.tariff,
-      }
-    }
+    return await this.setData(user)
   }
 
-  public async findByHash (hash: string) {
-    const user = await Users.findOne({ where: { hash } })
-    if (!user) return NotFoundResponse
+  public async findByHash (hash: string): Promise<IResponse> {
+    const result = await Users.findOne({ where: { hash } })
+    const user = result.dataValues
 
-    const userID = user.dataValues.id
-    return await this.findByID(userID)
+    return await this.setData(user)
   }
 
   public async disconnect () {
@@ -265,6 +244,17 @@ export class UserEntity {
     this.socket.emit(event, JSON.stringify(body))
   }
 
+  public addToFavorites (hash: string) {
+    const isFavorites = this.favoritesHash.find((el) => el == hash)
+
+    if (isFavorites) this.favoritesHash = this.favoritesHash.filter((el) => el == hash)
+    else this.favoritesHash.push(hash)
+
+    this.notify('update:favorites', {
+      favorites: this.favoritesHash,
+    })
+  }
+
   public set location (data: ILocationConstructor) {
     this.locationEntity.hash = data.hash
     this.locationEntity.location = data.location
@@ -274,6 +264,31 @@ export class UserEntity {
     }
 
     this.emitter.emit('update:location', this.location)
+  }
+
+  private async setData (user: IUserModel): Promise<IResponse> {
+    if (!user) return NotFoundResponse
+
+    this.id = user.id
+    this.firstname = user.firstname
+    this.middlename = user.middlename
+    this.lastname = user.lastname
+    this.avatar = user.avatar
+    this.hash = user.hash
+    this.tariffType = user.tariffType
+    this.email = user.email
+    this.password = user.password
+    this.projectsHash = user.projectsHash
+    this.favoritesHash = user.favoritesHash
+
+    this.phone = Security.decode(user.phone)
+
+    const projects = await Projects.findAll({ where: { autorID: this.id }, attributes: ['id'] })
+    this.projectsCount = projects.length
+
+    this.notifications = await UserNotificationEntity.findAll(this.id)
+
+    return createReponse(OKResponse, { message: 'Пользователь найден', tariff: this.tariff, })
   }
 
   public static async registration (data: CreateUserContract): Promise<IResponse> {
@@ -299,7 +314,7 @@ export class UserEntity {
         tariffType: 'basic',
       }
 
-      const user = await Users.create({ ...userData, isEmailVerified: false })
+      const user = await Users.create({ ...userData, isEmailVerified: false, favoritesHash: [] })
 
       UserEntity.createEmailVerification({
         email: user.email,
