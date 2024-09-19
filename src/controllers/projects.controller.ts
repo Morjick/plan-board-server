@@ -2,9 +2,10 @@
 import { AlreadyExistResponse, createReponse, OKResponse, ServerErrorResponse } from '~/data/constants/Responses'
 import { Body, Get, JsonController, Post, Req, UseBefore } from 'routing-controllers'
 import { CreateDirectoryContract, CreateWorkspaceContract } from '~/data/contracts/projects.contracts'
-import { Directories, IDirectory } from '~/data/database/models/projects/DirectoryModel'
 import { AuthMiddleware } from '~/middlewares/auth,middleware'
+import { Directories } from '~/data/database/models/projects/DirectoryModel'
 import { Libs } from '~/libs/Libs'
+import { LocationEntity } from '~/entities/user/LocationEntity'
 import { Reposity } from '~/data/reposity'
 import { WorkspaceEntity } from '~/entities/projects/WorkspaceEntity'
 
@@ -31,16 +32,22 @@ export class ProjectController {
         where: { autorHash: user.hash },
         limit: 50,
       })
-      const directoriesModel = directoriesData.map((el) => el.dataValues)
-      const directories: IDirectory[] = directoriesModel.map((el) => {
-        return { ...el, length: 0, autor: user.profile  }
-      })
+      const directories = directoriesData.map((el) => { return { ...el, length: 0, autor: user.profile  } })
 
-      const workspaces = await WorkspaceEntity.findByAutor(user.id, user.profile)
+      const favoritesHash = user.favoritesHash
+
+      const [favorites, workspaces] = await Promise.all([
+        favoritesHash.map(async (hash) => {
+          const location = new LocationEntity({ location: 'workspace', hash })
+          return await Reposity.workspace.findWorkspace(location)
+        }),
+        await WorkspaceEntity.findByAutor(user.id, user.profile),
+      ])
 
       return createReponse(OKResponse, {
         workspaces: workspaces,
         directories,
+        favorites,
       })
     } catch (e) {
       return createReponse(ServerErrorResponse, {

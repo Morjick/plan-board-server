@@ -1,7 +1,7 @@
 
 import * as jwt from 'jsonwebtoken'
 
-import { BadRequestResponse, ServerErrorResponse, UnauthorizedResponse, } from '~/data/constants/Responses'
+import { BadRequestResponse, createReponse, OKResponse, ServerErrorResponse, UnauthorizedResponse, } from '~/data/constants/Responses'
 
 import AES  from 'crypto-js/aes'
 import CryptoJS from 'crypto-js'
@@ -54,22 +54,9 @@ export class Security {
 
       if (!hash) throw new Error()
 
-      return {
-        status: 200,
-        exception: {
-          type: 'OK',
-          message: 'Авторизация подтверждена'
-        },
-        body: { hash, firstname }
-      }
+      return createReponse(OKResponse, { hash, firstname })
     } catch (error) {
-      if (error == 'TokenExpiredError: jwt expired') return {
-        status: 401,
-        exception: {
-          type: 'Unauthorized',
-          message: 'Срок действия токена истёк',
-        },
-      }
+      if (error == 'TokenExpiredError: jwt expired') return createReponse(UnauthorizedResponse, { message: 'Срок действия токена истёк' })
 
       return ServerErrorResponse
     }

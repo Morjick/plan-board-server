@@ -83,4 +83,19 @@ export class WorkspaceController {
 
     await workspace.update(body, participant)
   }
+
+  @OnMessage('add-to-favorite')
+  async addToFavorite (@ConnectedSocket() socket: Socket) {
+    try {
+      const workspaceHash = Sockets.getHash(socket.nsp.name)
+      const authUser = await Sockets.checkAuth(socket)
+
+      const user = Reposity.users.findOnlineUser(authUser.auth.hash)
+      user.addToFavorites(workspaceHash)
+    } catch (e) {
+      socket.emit('error:connection', {
+        message: 'Ошибка при добавлении в избранное',
+      })
+    }
+  }
 }

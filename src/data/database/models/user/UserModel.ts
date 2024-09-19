@@ -14,6 +14,7 @@ export interface IUserModel {
   password: string
   projectsHash: string[]
   isEmailVerified: boolean
+  favoritesHash: string[]
 }
 
 @Table
@@ -58,4 +59,7 @@ export class Users extends Model<IUserModel> {
 
   @Column({ type: DataType.ENUM('basic', 'advanced', 'pro'), defaultValue: 'basic' })
   tariffType: TTariffType
+
+  @Column({ type: DataType.ARRAY(DataType.STRING), defaultValue: [] })
+  favoritesHash: string[]
 }

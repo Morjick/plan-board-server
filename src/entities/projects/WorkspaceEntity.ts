@@ -264,6 +264,8 @@ export class WorkspaceEntity {
 
     participant.user.notify('workspace:edit', {
       space: this.space.value,
+      participant: this.onlineParticipant,
+      isFavorite: !!participant.user.favoritesHash.includes(this.hash),
     })
 
     this.emitter.emit('update:participant', this)
@@ -405,6 +407,7 @@ export class WorkspaceEntity {
   public static async findByAutor (id: number, autor?: IUserProfile): Promise<IProjectModel[]> {
     const result = await Projects.findAll({
       where: { autorID: id },
+      attributes: ['id', 'name', 'hash', 'created', 'lastUpdate', 'avatar', 'autorID', 'parantID']
     })
 
     const workspaces = result.map((el) => {
