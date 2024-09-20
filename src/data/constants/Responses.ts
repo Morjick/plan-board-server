@@ -27,7 +27,7 @@ export const UpdatedResponse: IResponse = {
 export const DeletedResponse: IResponse = {
   status: 204,
   exception: {
-    type: 'Delted',
+    type: 'Deleted',
     message: 'Запись удалена',
   },
 }
