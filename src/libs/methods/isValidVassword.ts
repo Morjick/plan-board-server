@@ -28,12 +28,6 @@ export async function IsValidPassword(password: string, name?: string): Promise<
     }
   }
 
-  if (typeof Number(password) == 'number') return {
-    message: 'Используйте в пароле хотя бы одну букву',
-    ok: false,
-    warning: false,
-  }
-
   if (
     password.includes('1234') ||
     password.includes('qwer') ||
