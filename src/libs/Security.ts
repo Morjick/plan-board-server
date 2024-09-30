@@ -41,8 +41,8 @@ export class Security {
   public static async getAuthToken (data: IGetAuthTokenData): Promise<[string, string]> {
     const password = data.password
 
-    const accessToken: string = await jwt.sign({ firstname: data.firstname, hash: data.hash }, SECRET_KEY, { expiresIn: '15m', })
-    const refreshToken: string = await jwt.sign({ firstname: data.firstname, password, hash: data.hash }, SECRET_KEY, { expiresIn: '100d', })
+    const accessToken: string = await jwt.sign({ firstname: data.firstname, hash: data.hash }, SECRET_KEY, { expiresIn: '1m', })
+    const refreshToken: string = await jwt.sign({ firstname: data.firstname, password, hash: data.hash }, SECRET_KEY, { expiresIn: '2m', })
 
     return [accessToken, refreshToken]
   }
