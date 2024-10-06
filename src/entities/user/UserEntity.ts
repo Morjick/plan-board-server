@@ -433,7 +433,7 @@ export class UserEntity {
 
       return await UserEntity.login({
         email,
-        password: newPassword,
+        password: randomString,
       })
     } catch (e) {
       const error = new Error(e)
