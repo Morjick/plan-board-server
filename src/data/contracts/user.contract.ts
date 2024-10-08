@@ -72,3 +72,11 @@ export class UpdateProfileContract {
   lastname?: string
   avatar?: string
 }
+
+export class SetNewPasswordContract {
+  @IsString({ message: 'Пароль должен быть строкой' })
+  password: string
+
+  @IsEmail({}, { message: 'Электронная почта не валидна' })
+  email: string
+}

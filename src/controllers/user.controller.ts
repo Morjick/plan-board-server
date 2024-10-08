@@ -7,6 +7,7 @@ import {
   ForgetPasswordContract,
   LoginUserContract,
   SendEmailVerifyCodeContract,
+  SetNewPasswordContract,
   UpdateProfileContract,
   VerifyForgottenCodeContract
 } from '~/data/contracts/user.contract'
@@ -132,5 +133,10 @@ export class UserController {
   @Post('/verify-code')
   async verifyForgottenCode (@Body() body: VerifyForgottenCodeContract) {
     return await UserEntity.verifyForgottenCode(body.email, body.code)
+  }
+
+  @Put('/set-password')
+  async setPassword (@Body() body: SetNewPasswordContract) {
+    return await UserEntity.setPassword(body.password, body.email)
   }
 }

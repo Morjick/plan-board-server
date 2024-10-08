@@ -425,16 +425,10 @@ export class UserEntity {
 
       if (code !== forgottenCode.code) return createReponse(BadRequestResponse, { message: 'Коды не совпадают' })
 
-      const randomString = Libs.randomString(16)
-      const newPassword = Security.encode(randomString)
-
-      await Users.update({ password: newPassword }, { where: { email } })
+      await Users.update({ dropPassword: true }, { where: { email } })
       ForgottenCodes.destroy({ where: { id: isCode.id } })
 
-      return await UserEntity.login({
-        email,
-        password: randomString,
-      })
+      return createReponse(OKResponse, { message: 'Пароль был успешно сброшен' })
     } catch (e) {
       const error = new Error(e)
       return createReponse(ServerErrorResponse, {
@@ -523,5 +517,25 @@ export class UserEntity {
     const verificationCode = Libs.randomNumber(100000, 999999)
     await UserVerificationsCodes.create({ code: verificationCode, email: data.email, userID: data.userID })
     await Mailer.sendVerificationCode({ to: data.email, verificationCode: verificationCode, username: data.username })
+  }
+
+  public static async setPassword (password: string, email: string) {
+    try {
+      const user = await Users.findOne({ where: { email } })
+
+      if (!user) return createReponse(NotFoundResponse)
+
+      const hashedPassword = Security.encode(password)
+
+      if (!user.dataValues.dropPassword) return createReponse(BadRequestResponse, {
+        message: 'Не возможно установить пароль. Подайте заявку на восстановление пароля'
+      })
+
+      await Users.update({ password: hashedPassword, dropPassword: false }, { where: { email } })
+
+      return UserEntity.login({ email: user.email, password: hashedPassword })
+    } catch (e) {
+      return createReponse(ServerErrorResponse)
+    }
   }
 }

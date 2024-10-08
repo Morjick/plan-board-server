@@ -242,4 +242,22 @@ export const userMethods: IApiHTTPMethod[] = [
       { name: 'email', required: true, value: 'string', },
     ],
   },
+  {
+    id: 'set-password',
+    method: 'PUT',
+    path: 'set-password',
+    section: 'users',
+    requiredAuth: false,
+    description: 'Установить пароль. Доступно только после сброса пароля',
+    responses: [
+      OKResponse,
+      BadRequestResponse,
+      NotFoundResponse,
+      ServerErrorResponse,
+    ],
+    params: [
+      { name: 'email', required: true, value: 'string', },
+      { name: 'password', required: true, value: 'string', },
+    ],
+  },
 ]

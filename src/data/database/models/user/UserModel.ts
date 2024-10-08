@@ -15,6 +15,7 @@ export interface IUserModel {
   projectsHash: string[]
   isEmailVerified: boolean
   favoritesHash: string[]
+  dropPassword: boolean
 }
 
 @Table
@@ -44,6 +45,9 @@ export class Users extends Model<IUserModel> {
 
   @Column({ type: DataType.STRING, allowNull: false, unique: true })
   password: string
+
+  @Column({ type: DataType.BOOLEAN, defaultValue: false })
+  dropPassword: boolean
 
   @Column({ type: DataType.STRING, defaultValue: '' })
   phone: string
