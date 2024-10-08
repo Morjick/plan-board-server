@@ -533,7 +533,7 @@ export class UserEntity {
 
       await Users.update({ password: hashedPassword, dropPassword: false }, { where: { email } })
 
-      return UserEntity.login({ email: user.email, password: hashedPassword })
+      return UserEntity.login({ email: user.email, password: password })
     } catch (e) {
       return createReponse(ServerErrorResponse)
     }
