@@ -27,6 +27,7 @@ import { UserNotificationEntity } from './UserNotification'
 import { UserVerificationsCodes } from '~/data/database/models/user/VerificationCode'
 import { WorkspaceEntity } from '../projects/WorkspaceEntity'
 
+export type TUserRole = 'guest' | 'user' | 'manager' | 'admin' | 'root'
 export type TNotifyEvent =
   'redirect'
   | 'error:permissions'
@@ -75,6 +76,8 @@ export interface IVerifyEmail {
   email: string
 }
 
+export const UserProfileAttrebutes = ['id', 'firstname', 'middlename', 'lastname', 'avatar', 'hash']
+
 export class UserEntity {
   public id: number
   public firstname: string
@@ -86,6 +89,7 @@ export class UserEntity {
   public projectsHash: string[] = []
   public online: boolean = false
   public favoritesHash: string[] = []
+  public role: TUserRole = 'guest'
 
   private email: string
   private phone: string
@@ -140,6 +144,7 @@ export class UserEntity {
 
   constructor () {
     this.hash = Libs.randomString(16)
+    this.role = 'guest'
   }
 
   public async findByID (id: number): Promise<IResponse> {
@@ -280,6 +285,7 @@ export class UserEntity {
     this.password = user.password
     this.projectsHash = user.projectsHash
     this.favoritesHash = user.favoritesHash
+    this.role = user.role || 'guest'
 
     this.phone = Security.decode(user.phone)
 
@@ -479,7 +485,7 @@ export class UserEntity {
   public static async getProfile (userHash: string): Promise<IResponse> {
     const user = await Users.findOne({
       where: { hash: userHash },
-      attributes: ['id', 'firstname', 'middlename', 'lastname', 'avatar', 'hash']
+      attributes: UserProfileAttrebutes
     })
 
     if (!user) return NotFoundResponse

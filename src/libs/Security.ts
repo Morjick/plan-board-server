@@ -13,6 +13,11 @@ interface IGetAuthTokenData {
   firstname: string
 }
 
+interface ICheckTokenResponse {
+  hash: string
+  firstname: string
+}
+
 const SECRET_KEY = process.env.SECRET_KEY
 
 export class Security {
@@ -47,7 +52,7 @@ export class Security {
     return [accessToken, refreshToken]
   }
 
-  public static async checkToken (token: string): Promise<IResponse> {
+  public static async checkToken (token: string): Promise<IResponse<ICheckTokenResponse>> {
     try {
       if (!token) return UnauthorizedResponse
       const { hash, firstname } = jwt.verify(token, SECRET_KEY, { secret: SECRET_KEY })

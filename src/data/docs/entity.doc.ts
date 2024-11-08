@@ -99,6 +99,7 @@ export const entities: IEntity[] = [
       { name: 'online', type: 'number', value: 'number' },
       { name: 'watchers', type: 'IUserProfile', value: 'IUserProfile' },
       { name: 'settings', type: 'IWorkspaceSettings', value: 'IWorkspaceSettings' },
+      { name: 'lastUpdated', type: 'string', value: 'string' },
     ]
   },
   {
@@ -118,6 +119,34 @@ export const entities: IEntity[] = [
       { name: 'viewed', type: 'boolean', value: 'boolean' },
       { name: 'date', type: 'string', value: 'string' },
       { name: 'userID', type: 'number', value: 'number' },
+    ]
+  },
+  {
+    name: 'IDirectory',
+    params: [
+      { name: 'id', type: 'number', value: 'number' },
+      { name: 'hash', type: 'string', value: 'string' },
+      { name: 'name', type: 'string', value: 'string' },
+      { name: 'lastUpdated', type: 'string', value: 'string' },
+      { name: 'isPrivate', type: 'boolean', value: 'boolean' },
+      { name: 'filesID', type: 'number', value: 'number[]' },
+      { name: 'parrentID', type: 'number', value: 'number' },
+      { name: 'autorHash', type: 'string', value: 'string' },
+      { name: 'autor', type: 'IUserProfile', value: 'IUserProfile' },
+    ]
+  },
+  {
+    name: 'IDirectoryFile',
+    params: [
+      { name: 'id', type: 'number', value: 'number' },
+      { name: 'path', type: 'string', value: 'string' },
+      { name: 'name', type: 'string', value: 'string' },
+      { name: 'slug', type: 'string', value: 'string' },
+      { name: 'lastUpdated', type: 'string', value: 'string' },
+      { name: 'type', type: 'TFileType', value: 'TFileType' },
+      { name: 'parrentID', type: 'number', value: 'number' },
+      { name: 'autorHash', type: 'string', value: 'string' },
+      { name: 'autor', type: 'IUserProfile', value: 'IUserProfile' },
     ]
   },
 ]

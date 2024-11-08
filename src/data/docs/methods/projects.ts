@@ -32,4 +32,20 @@ export const projectsMethods: IApiHTTPMethod[] = [
     ],
     params: [],
   },
+  {
+    id: 'get-catalog',
+    method: 'GET',
+    path: 'catalog/:hash',
+    section: 'projects',
+    requiredAuth: true,
+    description: 'Получить весь каталог',
+    responses: [
+      createReponse(OKResponse, {
+        catalog: 'Array<WorkspaceEntity | IDirectory | IDirectoryFile>'
+      }),
+      ServerErrorResponse,
+      UnauthorizedResponse,
+    ],
+    params: [],
+  },
 ]

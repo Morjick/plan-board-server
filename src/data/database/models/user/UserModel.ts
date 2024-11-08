@@ -1,5 +1,6 @@
 import { Column, DataType, Model, Table } from 'sequelize-typescript'
 import { TTariffType } from '~/entities/tariff/TariffEntity'
+import { TUserRole } from '~/entities/user/UserEntity'
 
 export interface IUserModel {
   id: number
@@ -16,6 +17,7 @@ export interface IUserModel {
   isEmailVerified: boolean
   favoritesHash: string[]
   dropPassword: boolean
+  role: TUserRole
 }
 
 @Table
@@ -66,4 +68,7 @@ export class Users extends Model<IUserModel> {
 
   @Column({ type: DataType.ARRAY(DataType.STRING), defaultValue: [] })
   favoritesHash: string[]
+
+  @Column({ type: DataType.ENUM('guest', 'user', 'manager', 'admin', 'root'), defaultValue: 'user' })
+  role: TUserRole
 }

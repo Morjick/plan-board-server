@@ -14,6 +14,7 @@ import { createExpressServer } from 'routing-controllers'
 import { GlobalResponseInterceptor } from './data/interceptors/GlobalResponseInterceptor'
 import { OnlineController } from './controllers/online.controller'
 import { ProjectController } from './controllers/projects.controller'
+import { PromocodesController } from './controllers/promocodes.controller'
 import { ServerHeaders } from './data/constants/Server'
 import { SocketControllers } from 'socket-controllers'
 import { startDataBase } from './data/database'
@@ -30,7 +31,14 @@ const startServer = async () => {
     const serverMode: TServerMode = process.env.SERVER_MODE as TServerMode || 'development'
 
     const app = createExpressServer({
-      controllers: [UserController, AppController, TariffController, ProjectController, StaticController],
+      controllers: [
+        UserController,
+        AppController,
+        TariffController,
+        ProjectController,
+        StaticController,
+        PromocodesController,
+      ],
       interceptors: [GlobalResponseInterceptor],
       cors: {
         methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',

@@ -7,6 +7,7 @@ import { DirectoryFiles } from './models/projects/FilesModel'
 import { ForgottenCodes } from './models/user/ForgottenCodes'
 import { Participants } from './models/projects/ParticipantModel'
 import { Projects } from './models/projects/ProjectModel'
+import { Promocodes } from './models/promocodes/Promocodes'
 import { Sequelize } from 'sequelize-typescript'
 import { Spaces } from './models/projects/SpaceModel'
 import { TServerMode } from '../interfaces/server.interfaces'
@@ -66,6 +67,7 @@ export const startDataBase = async (data: DataBaseConstructorInterface) => {
         AnalyticsErrorPage,
         Directories,
         DirectoryFiles,
+        Promocodes,
       ],
     }
   )

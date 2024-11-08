@@ -25,4 +25,8 @@ export const unionTypes: IUnionType[] = [
     name: 'THelpPage',
     values: ['directories', 'workspace']
   },
+  {
+    name: 'TFileType',
+    values: ['workspace',  'txt',  'doc',  'docx',  'pdf',  'xsls',  'xls',  'directory']
+  }
 ]

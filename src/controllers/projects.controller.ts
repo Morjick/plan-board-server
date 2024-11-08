@@ -1,11 +1,13 @@
 
 import { AlreadyExistResponse, createReponse, OKResponse, ServerErrorResponse } from '~/data/constants/Responses'
-import { Body, Get, JsonController, Post, Req, UseBefore } from 'routing-controllers'
+import { Body, Get, JsonController, Params, Post, Req, UseBefore } from 'routing-controllers'
 import { CreateDirectoryContract, CreateWorkspaceContract } from '~/data/contracts/projects.contracts'
 import { AuthMiddleware } from '~/middlewares/auth,middleware'
 import { Directories } from '~/data/database/models/projects/DirectoryModel'
+import { DirectoryFiles } from '~/data/database/models/projects/FilesModel'
 import { Libs } from '~/libs/Libs'
 import { LocationEntity } from '~/entities/user/LocationEntity'
+import { Projects } from '~/data/database/models/projects/ProjectModel'
 import { Reposity } from '~/data/reposity'
 import { WorkspaceEntity } from '~/entities/projects/WorkspaceEntity'
 
@@ -67,7 +69,7 @@ export class ProjectController {
       if (isDirectoryExists) return createReponse(AlreadyExistResponse, {
         message: 'Директория с таким именем уже существует'
       })
-  
+
       await Directories.create({
         autorHash: user.hash,
         name: body.name,
@@ -83,6 +85,62 @@ export class ProjectController {
         message: 'Не удалось создать директорию',
         details: new Error(e).message,
       })
+    }
+  }
+
+  @Get('/catalog')
+  @Get('/catalog/:hash')
+  @UseBefore(AuthMiddleware)
+  async getCatalog (@Params() params, @Req() request) {
+    try {
+      const userHash = request.userHash
+      const user = await Reposity.users.findUser(userHash)
+
+      const directoriesModels = await Directories.findAll({ where: { autorHash: user.hash } })
+      const filesModel = await DirectoryFiles.findAll({ where: { autorHash: user.hash } })
+      const workspacesModels = await Projects.findAll({ where: { autorID: user.id } })
+
+      const [directories, files, workspaces] = await Promise.all([
+        directoriesModels.map(async (directory) => {
+          const length = await Directories.count({ where: { id: directory.id } })
+
+          return {
+            ...directory.dataValues,
+            autor: user.profile,
+            length,
+            lastUpdated: directory.updatedAt,
+            type: 'directory'
+          }
+        }),
+        filesModel.map((file) => {
+          return {
+            ...file.dataValues,
+            autor: user.profile,
+            lastUpdated: file.updatedAt,
+            type: file.dataValues.type,
+          }
+        }),
+        workspacesModels.map((workspace) => {
+          return {
+            ...workspace.dataValues,
+            type: 'workspace',
+            lastUpdated: workspace.updatedAt
+          }
+        })
+      ])
+
+      const catalog = await Promise.all([...directories, ...files, ...workspaces])
+      const sortedCatalog = catalog.sort((prev, next) => {
+        if (prev.lastUpdated > next.lastUpdated) return +1
+        else if (prev.lastUpdated < next.lastUpdated) return -1
+        else 0
+      })
+
+      return createReponse(OKResponse, {
+        catalog: sortedCatalog,
+      })
+    } catch (e) {
+
     }
   }
 

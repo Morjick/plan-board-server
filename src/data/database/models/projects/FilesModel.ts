@@ -1,6 +1,6 @@
 import { Column, DataType, Model, Table } from 'sequelize-typescript'
 
-export type TFileType = 'workspace' | 'txt' | 'doc' | 'docx' | 'pdf' | 'xsls' | 'xls'
+export type TFileType = 'workspace' | 'txt' | 'doc' | 'docx' | 'pdf' | 'xsls' | 'xls' | 'directory'
 
 export interface IDirectoryFiles {
   id: number
