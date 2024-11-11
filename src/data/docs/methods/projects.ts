@@ -17,6 +17,25 @@ export const projectsMethods: IApiHTTPMethod[] = [
     params: [],
   },
   {
+    id: 'create-directory',
+    method: 'POST',
+    path: 'create-directory',
+    section: 'projects',
+    requiredAuth: true,
+    description: 'Создать директорию',
+    responses: [
+      createReponse(OKResponse, {
+        catalog: 'Array<WorkspaceEntity | IDirectory | IDirectoryFile>'
+      }),
+      ServerErrorResponse,
+      UnauthorizedResponse,
+    ],
+    params: [
+      { name: 'name', required: true, value: 'string', },
+      { name: 'directoryID', required: false, value: 'number', },
+    ],
+  },
+  {
     id: 'get-projects',
     method: 'GET',
     path: 'list',
