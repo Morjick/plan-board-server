@@ -14,7 +14,9 @@ export const projectsMethods: IApiHTTPMethod[] = [
       ServerErrorResponse,
       UnauthorizedResponse,
     ],
-    params: [],
+    params: [
+      { name: 'directoryID', required: false, value: 'number', },
+    ],
   },
   {
     id: 'create-directory',
