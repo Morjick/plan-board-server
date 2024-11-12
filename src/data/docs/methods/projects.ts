@@ -59,7 +59,11 @@ export const projectsMethods: IApiHTTPMethod[] = [
     path: 'catalog/:hash',
     section: 'projects',
     requiredAuth: true,
-    description: 'Получить весь каталог',
+    description: `Получить весь каталог. В интерфейсы для каталога (WorkspaceEntity, IDirectory, IDirectoryFile) добавлены поля:
+      lastUpdated: string,
+      type: TFileType,
+      autor: IUserFulleProfile
+    `,
     responses: [
       createReponse(OKResponse, {
         catalog: 'Array<WorkspaceEntity | IDirectory | IDirectoryFile>'
