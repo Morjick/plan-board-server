@@ -20,6 +20,9 @@ interface ICheckTokenResponse {
 
 const SECRET_KEY = process.env.SECRET_KEY
 
+const ACCESS_TOKEN_LIFETIME = '15m'
+const REFRESH_TOKEN_LIFETIME = '40d'
+
 export class Security {
   constructor () {}
 
@@ -46,8 +49,8 @@ export class Security {
   public static async getAuthToken (data: IGetAuthTokenData): Promise<[string, string]> {
     const password = data.password
 
-    const accessToken: string = await jwt.sign({ firstname: data.firstname, hash: data.hash }, SECRET_KEY, { expiresIn: '1m', })
-    const refreshToken: string = await jwt.sign({ firstname: data.firstname, password, hash: data.hash }, SECRET_KEY, { expiresIn: '2m', })
+    const accessToken: string = await jwt.sign({ firstname: data.firstname, hash: data.hash }, SECRET_KEY, { expiresIn: ACCESS_TOKEN_LIFETIME, })
+    const refreshToken: string = await jwt.sign({ firstname: data.firstname, password, hash: data.hash }, SECRET_KEY, { expiresIn: REFRESH_TOKEN_LIFETIME, })
 
     return [accessToken, refreshToken]
   }
@@ -99,7 +102,7 @@ export class Security {
       if (response.exception.type !== 'OK') return response
 
       const data = response.body
-      const accessToken = await jwt.sign({ firstname: data.firstname, hash: data.hash }, SECRET_KEY, { expiresIn: '15m', })
+      const accessToken = await jwt.sign({ firstname: data.firstname, hash: data.hash }, SECRET_KEY, { expiresIn: ACCESS_TOKEN_LIFETIME, })
 
       return {
         status: 200,

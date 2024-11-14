@@ -89,16 +89,18 @@ export class ProjectController {
   }
 
   @Get('/catalog')
-  @Get('/catalog/:hash')
+  @Get('/catalog/:parentID')
   @UseBefore(AuthMiddleware)
   async getCatalog (@Params() params, @Req() request) {
     try {
       const userHash = request.userHash
       const user = await Reposity.users.findUser(userHash)
 
-      const directoriesModels = await Directories.findAll({ where: { autorHash: user.hash } })
-      const filesModel = await DirectoryFiles.findAll({ where: { autorHash: user.hash } })
-      const workspacesModels = await Projects.findAll({ where: { autorID: user.id } })
+      const parentID = params.parentID || null
+
+      const directoriesModels = await Directories.findAll({ where: { autorHash: user.hash, parrentID: parentID } })
+      const filesModel = await DirectoryFiles.findAll({ where: { autorHash: user.hash, parrentID: parentID } })
+      const workspacesModels = await Projects.findAll({ where: { autorID: user.id, parantID: parentID } })
 
       const [directories, files, workspaces] = await Promise.all([
         directoriesModels.map(async (directory) => {
