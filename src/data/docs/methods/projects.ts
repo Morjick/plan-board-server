@@ -66,7 +66,9 @@ export const projectsMethods: IApiHTTPMethod[] = [
     `,
     responses: [
       createReponse(OKResponse, {
-        catalog: 'Array<WorkspaceEntity | IDirectory | IDirectoryFile>'
+        catalog: 'Array<WorkspaceEntity | IDirectory | IDirectoryFile>',
+        breadcrumbs: 'IDirectory[]',
+        currentDirectory: 'IDirectory'
       }),
       ServerErrorResponse,
       UnauthorizedResponse,

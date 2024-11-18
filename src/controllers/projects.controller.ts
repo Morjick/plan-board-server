@@ -11,6 +11,18 @@ import { Projects } from '~/data/database/models/projects/ProjectModel'
 import { Reposity } from '~/data/reposity'
 import { WorkspaceEntity } from '~/entities/projects/WorkspaceEntity'
 
+const GET_MAIN_DIRECTORY = () => {
+  return {
+    id: null,
+    hash: '',
+    isPrivate: true,
+    parrentID: null,
+    filesID: [],
+    autorHash: null,
+    name: 'Каталог',
+  }
+}
+
 @JsonController('/projects')
 export class ProjectController {
 
@@ -114,12 +126,12 @@ export class ProjectController {
 
         parentID = directory.dataValues.id
         currentDirectory = directory?.dataValues
-      } else if (!parantDirectoryParam) {
-        const directory = await Directories.findOne({ where: { autorHash: user.hash, parrentID: null } })
-        currentDirectory = directory?.dataValues
+      }
+      else if (!parantDirectoryParam) {
+        currentDirectory = GET_MAIN_DIRECTORY()
       }
 
-      if (!currentDirectory) return createReponse(NotFoundResponse, { message: 'Не удалось найти директорию' })
+      if (!currentDirectory && parantDirectoryParam) return createReponse(NotFoundResponse, { message: 'Не удалось найти директорию' })
 
       const getParentDirectory = async (directoryID: number | null, order: number = 1) => {
         const directory = await Directories.findByPk(directoryID)
@@ -132,7 +144,7 @@ export class ProjectController {
       }
 
       const parents = await getParentDirectory(currentDirectory.parrentID)
-      parents.push(currentDirectory)
+      if (parents.length) parents.push(currentDirectory)
       const breadcrumbs = parents
 
       const directoriesModels = await Directories.findAll({ where: { autorHash: user.hash, parrentID: parentID } })
