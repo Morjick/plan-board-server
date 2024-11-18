@@ -1,5 +1,5 @@
 
-import { AlreadyExistResponse, createReponse, OKResponse, ServerErrorResponse } from '~/data/constants/Responses'
+import { AlreadyExistResponse, createReponse, NotFoundResponse, OKResponse, ServerErrorResponse } from '~/data/constants/Responses'
 import { Body, Get, JsonController, Params, Post, Req, UseBefore } from 'routing-controllers'
 import { CreateDirectoryContract, CreateWorkspaceContract } from '~/data/contracts/projects.contracts'
 import { AuthMiddleware } from '~/middlewares/auth,middleware'
@@ -98,14 +98,42 @@ export class ProjectController {
 
       let parentID = null
       const parantDirectoryParam = params.parentParam
+      let currentDirectory = null
 
       if (typeof Number(parantDirectoryParam) == 'number' && !Number.isNaN(Number(parantDirectoryParam))) {
+        const id = Number(parantDirectoryParam)
+        const directory = await Directories.findByPk(id)
+
         parentID = parantDirectoryParam
+        currentDirectory = directory?.dataValues
       } else if (typeof parantDirectoryParam == 'string') {
-        const directory = await Directories.findOne({ where: { hash: parantDirectoryParam } })
+        const directory = await Directories.findOne({
+          where: { hash: parantDirectoryParam },
+          attributes: ['id'],
+        })
 
         parentID = directory.dataValues.id
+        currentDirectory = directory?.dataValues
+      } else if (!parantDirectoryParam) {
+        const directory = await Directories.findOne({ where: { autorHash: user.hash, parrentID: null } })
+        currentDirectory = directory?.dataValues
       }
+
+      if (!currentDirectory) return createReponse(NotFoundResponse, { message: 'Не удалось найти директорию' })
+
+      const getParentDirectory = async (directoryID: number | null, order: number = 1) => {
+        const directory = await Directories.findByPk(directoryID)
+        if (!directory) return []
+
+        const parants = await getParentDirectory(directory.dataValues.parrentID, order + 1)
+        parants.push({ ...directory.dataValues, order })
+
+        return parants
+      }
+
+      const parents = await getParentDirectory(currentDirectory.parrentID)
+      parents.push(currentDirectory)
+      const breadcrumbs = parents
 
       const directoriesModels = await Directories.findAll({ where: { autorHash: user.hash, parrentID: parentID } })
       const filesModel = await DirectoryFiles.findAll({ where: { autorHash: user.hash, parrentID: parentID } })
@@ -113,7 +141,11 @@ export class ProjectController {
 
       const [directories, files, workspaces] = await Promise.all([
         directoriesModels.map(async (directory) => {
-          const length = await Directories.count({ where: { id: directory.id } })
+          const directoryCount = await Directories.count({ where: { parrentID: directory.id } })
+          const filesCount = await DirectoryFiles.count({ where: { parrentID: directory.id } })
+          const workspaceCount = await Projects.count({ where: { parantID: directory.id } })
+
+          const length = directoryCount + filesCount + workspaceCount
 
           return {
             ...directory.dataValues,
@@ -149,6 +181,8 @@ export class ProjectController {
 
       return createReponse(OKResponse, {
         catalog: sortedCatalog,
+        breadcrumbs,
+        currentDirectory,
       })
     } catch (e) {
       return createReponse(ServerErrorResponse, {

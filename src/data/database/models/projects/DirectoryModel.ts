@@ -1,4 +1,4 @@
-import { Column, DataType, Model, Table } from 'sequelize-typescript'
+import { BelongsTo, Column, DataType, ForeignKey, Model, Table } from 'sequelize-typescript'
 import { IUserProfile } from '~/entities/user/UserEntity'
 
 export interface IDirectoryModel {
@@ -38,9 +38,13 @@ export class Directories extends Model<IDirectoryModel> {
   @Column({ type: DataType.ARRAY(DataType.INTEGER), defaultValue: [] })
   filesID: number[]
 
-  @Column({ type: DataType.INTEGER })
-  parrentID: number
-
   @Column({ type: DataType.STRING })
   autorHash: string
+
+  @Column({ type: DataType.INTEGER })
+  @ForeignKey(() => Directories)
+  parrentID: number
+
+  @BelongsTo(() => Directories)
+  parent: Directories
 }
