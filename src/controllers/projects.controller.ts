@@ -89,14 +89,23 @@ export class ProjectController {
   }
 
   @Get('/catalog')
-  @Get('/catalog/:parentID')
+  @Get('/catalog/:parentParam')
   @UseBefore(AuthMiddleware)
   async getCatalog (@Params() params, @Req() request) {
     try {
       const userHash = request.userHash
       const user = await Reposity.users.findUser(userHash)
 
-      const parentID = params.parentID || null
+      let parentID = null
+      const parantDirectoryParam = params.parentParam
+
+      if (typeof Number(parantDirectoryParam) == 'number' && !Number.isNaN(Number(parantDirectoryParam))) {
+        parentID = parantDirectoryParam
+      } else if (typeof parantDirectoryParam == 'string') {
+        const directory = await Directories.findOne({ where: { hash: parantDirectoryParam } })
+
+        parentID = directory.dataValues.id
+      }
 
       const directoriesModels = await Directories.findAll({ where: { autorHash: user.hash, parrentID: parentID } })
       const filesModel = await DirectoryFiles.findAll({ where: { autorHash: user.hash, parrentID: parentID } })
@@ -142,7 +151,13 @@ export class ProjectController {
         catalog: sortedCatalog,
       })
     } catch (e) {
-
+      return createReponse(ServerErrorResponse, {
+        error: new Error(e).message,
+        message: 'Ошиюка при получении каталога',
+      }, {
+        type: 'error',
+        message: 'Не удалось получить каталог, попробуйте позже'
+      })
     }
   }
 
