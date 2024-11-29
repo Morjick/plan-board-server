@@ -121,7 +121,6 @@ export class ProjectController {
       } else if (typeof parantDirectoryParam == 'string') {
         const directory = await Directories.findOne({
           where: { hash: parantDirectoryParam },
-          attributes: ['id'],
         })
 
         parentID = directory.dataValues.id
