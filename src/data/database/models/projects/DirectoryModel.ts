@@ -29,7 +29,7 @@ export class Directories extends Model<IDirectoryModel> {
   @Column({ type: DataType.STRING, unique: true, allowNull: false })
   hash: string
 
-  @Column({ type: DataType.STRING, unique: true, allowNull: false })
+  @Column({ type: DataType.STRING, allowNull: false })
   name: string
 
   @Column({ type: DataType.BOOLEAN, defaultValue: false })
