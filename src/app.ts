@@ -51,12 +51,19 @@ const startServer = async () => {
       validation: true,
     })
 
-    new SocketControllers({
+    const socketServer = new SocketControllers({
       port: socketPort,
       controllers: [OnlineController, WorkspaceController],
       middlewares: [ConnectionMiddleware],
       container: Container,
     })
+
+    socketServer.io._opts.cors = {
+      origin: '*',
+      methods: ['GET', 'POST'],
+      allowedHeaders: [],
+      credentials: true
+    }
 
     await startDataBase({
       HOST: process.env.DB_HOST || 'localhost',
