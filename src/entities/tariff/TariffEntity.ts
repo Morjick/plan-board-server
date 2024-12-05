@@ -4,6 +4,7 @@ export type TTariffType = 'basic' | 'advanced' | 'pro'
 export interface ITariffLimit {
   projectsCount: number | 'unlimited'
   commandLength: number | 'unlimited'
+  directoriesCount: number | 'unlimited'
 }
 
 export interface ITariffitem {
@@ -23,6 +24,7 @@ const TariffsList: ITariffitem[] = [
     limits: {
       projectsCount: 10,
       commandLength: 0,
+      directoriesCount: 3,
     },
   },
   {
@@ -33,6 +35,7 @@ const TariffsList: ITariffitem[] = [
     limits: {
       projectsCount: 100,
       commandLength: 50,
+      directoriesCount: 15,
     },
   },
   {
@@ -43,6 +46,7 @@ const TariffsList: ITariffitem[] = [
     limits: {
       projectsCount: 'unlimited',
       commandLength: 'unlimited',
+      directoriesCount: 'unlimited',
     },
   },
 ]
