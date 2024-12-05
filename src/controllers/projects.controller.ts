@@ -1,5 +1,5 @@
 
-import { AlreadyExistResponse, createReponse, NotFoundResponse, OKResponse, ServerErrorResponse } from '~/data/constants/Responses'
+import { AlreadyExistResponse, BadRequestResponse, createReponse, NotFoundResponse, OKResponse, ServerErrorResponse } from '~/data/constants/Responses'
 import { Body, Get, JsonController, Params, Post, Req, UseBefore } from 'routing-controllers'
 import { CreateDirectoryContract, CreateWorkspaceContract } from '~/data/contracts/projects.contracts'
 import { AuthMiddleware } from '~/middlewares/auth,middleware'
@@ -81,6 +81,15 @@ export class ProjectController {
       if (isDirectoryExists) return createReponse(AlreadyExistResponse, {
         message: 'Директория с таким именем уже существует'
       })
+
+      const directoryCount = await Directories.count({ where: { autorHash: user.hash } })
+      const availableDirectory = user.tariff.limits.directoriesCount
+
+      if (availableDirectory !== 'unlimited' && availableDirectory <= directoryCount) return createReponse(
+        BadRequestResponse,
+        { message: 'Достигнут лимит создания директорий.', },
+        { message: `Достигнут лимит создания директорий. На данном тарифе доступно директорий: ${availableDirectory}`, type: 'warning' }
+      )
 
       await Directories.create({
         autorHash: user.hash,
