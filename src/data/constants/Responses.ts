@@ -73,7 +73,7 @@ export const AlreadyExistResponse: IResponse = {
 }
 
 export const InternalServerErrorResponse: IResponse = {
-  status: 500,
+  status: 501,
   error: 'InternalServerError',
   exception: {
     type: 'Unexcepted',
