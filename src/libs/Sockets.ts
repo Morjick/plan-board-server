@@ -12,7 +12,7 @@ export class Sockets {
   }
 
   public static async checkAuth (socket: Socket) {
-    const token = socket.handshake.headers.authorization
+    const token = socket.handshake.headers.authorization || socket.handshake.auth.token
 
     const response = await Security.checkToken(token) 
 

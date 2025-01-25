@@ -18,9 +18,9 @@ export class WorkspaceController {
     try {
       const workspaceHash = Sockets.getHash(socket.nsp.name)
       const location = new LocationEntity({ location: 'workspace', hash: workspaceHash })
-  
+
       const workspace = await Reposity.workspace.findWorkspace(location)
-  
+
       if (!workspace) {
         socket.emit('error:connection', { message: 'Не смогли найти рабочую область. Проверьте корректность ссылки' })
         socket.disconnect()
@@ -28,29 +28,29 @@ export class WorkspaceController {
       }
 
       socket.emit('redirect', new LocationEntity({ location: 'workspace:loading', hash: workspace.hash }))
-  
+
       const authUser = await Sockets.checkAuth(socket)
       const isAnonyme = !!!authUser
-  
+
       let user: UserEntity = null
-  
+
       if (!isAnonyme) {
         socket.handshake.auth = authUser.auth
         socket.handshake.auth.location = authUser.location
-  
+
         user = Reposity.users.findOnlineUser(authUser.auth.hash)
       } else {
         const anonymeUser = new UserEntity()
-  
+
         anonymeUser.id = Libs.randomNumber(12000, 15000)
         anonymeUser.hash = socket.handshake.address
         anonymeUser.firstname = 'Анонимный'
         anonymeUser.lastname = 'Пользователь'
         anonymeUser.socket = socket
-  
+
         socket.handshake.auth = anonymeUser.profile
         socket.handshake.auth.location = anonymeUser.location
-  
+
         user = anonymeUser
       }
 

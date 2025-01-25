@@ -15,8 +15,10 @@ import { GlobalResponseInterceptor } from './data/interceptors/GlobalResponseInt
 import { OnlineController } from './controllers/online.controller'
 import { ProjectController } from './controllers/projects.controller'
 import { PromocodesController } from './controllers/promocodes.controller'
+import { Server } from 'http'
 import { ServerHeaders } from './data/constants/Server'
 import { SocketControllers } from 'socket-controllers'
+import socketio from 'socket.io'
 import { startDataBase } from './data/database'
 import { StaticController } from './controllers/static.constroller'
 import { TariffController } from './controllers/tariff.controller'
@@ -51,11 +53,24 @@ const startServer = async () => {
       validation: true,
     })
 
+    const ioServer = new Server()
+    ioServer.listen(socketPort)
+
+    const io = new socketio.Server(ioServer, {
+      cors: {
+        origin: '*',
+        methods: ['GET', 'POST'],
+        allowedHeaders: [],
+        credentials: true
+      },
+    })
+
     const socketServer = new SocketControllers({
       port: socketPort,
       controllers: [OnlineController, WorkspaceController],
       middlewares: [ConnectionMiddleware],
       container: Container,
+      io,
     })
 
     socketServer.io._opts.cors = {

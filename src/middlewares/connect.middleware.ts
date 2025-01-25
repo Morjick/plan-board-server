@@ -12,7 +12,7 @@ import { UnauthorizedResponse } from '~/data/constants/Responses'
 @Middleware({namespace: ['/online']})
 export class ConnectionMiddleware implements MiddlewareInterface {
   async use(socket: Socket, next: NextFunction) {
-    try {
+    try {      
       const isAuth = await Sockets.checkAuth(socket)
 
       if (!isAuth) return next(UnauthorizedResponse)
@@ -20,8 +20,10 @@ export class ConnectionMiddleware implements MiddlewareInterface {
       socket.handshake.auth = isAuth.auth
       socket.handshake.auth.location = isAuth.location
       socket.handshake.auth.sessionStart = Libs.getDate(),
+
       next()
     } catch (e) {
+      console.log('error on connect: ', e)
       next(JSON.stringify(UnauthorizedResponse))
     }
   }
