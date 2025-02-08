@@ -100,6 +100,9 @@ export class ProjectController {
   
       return createReponse(OKResponse, {
         message: 'Директория создана'
+      }, {
+        type: 'cool',
+        message: 'Директория создана'
       })
     } catch (e) {
       return createReponse(ServerErrorResponse, {

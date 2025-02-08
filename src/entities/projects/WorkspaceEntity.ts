@@ -354,6 +354,9 @@ export class WorkspaceEntity {
 
       if (!isUnlimited && isOverlimit) return createReponse(PermissionDeniedResponse, {
         message: 'Для того, чтобы создавать больше рабочих областей, вам необходимо сменить тариф'
+      }, {
+        type: 'warning',
+        message: 'Достигнут лими создаваемых рабочих областей'
       })
 
       const maintainer = await Participants.create({ userHash: autor.hash, role: 'maintainer' })
@@ -364,6 +367,9 @@ export class WorkspaceEntity {
         const directory = await Directories.findByPk(data.directoryID)
 
         if (directory.autorHash !== autor.hash) return createReponse(PermissionDeniedResponse, {
+          message: 'Вы не можете создавать файлы в этой директории'
+        }, {
+          type: 'warning',
           message: 'Вы не можете создавать файлы в этой директории'
         })
 
@@ -382,6 +388,9 @@ export class WorkspaceEntity {
 
       return createReponse(OKResponse, {
         workspace: workspace.dataValues,
+      }, {
+        type: 'cool',
+        message: 'Рабочая область создана'
       })
     } catch (e) {
       return createReponse(ServerErrorResponse, {

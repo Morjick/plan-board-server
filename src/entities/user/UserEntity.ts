@@ -170,7 +170,10 @@ export class UserEntity {
     this.tariffType = tariff.type
     await Users.update({ tariffType: this.tariffType }, { where: { id: this.id } })
 
-    return UpdatedResponse
+    this.createNotification({
+      message: 'Тариф успешно изменён'
+    })
+    return createReponse(UpdatedResponse, {}, { type: 'cool', message: 'Тариф успешно изменён' })
   }
 
   public async changePassword (data: ChangePasswordContract): Promise<IResponse> {
